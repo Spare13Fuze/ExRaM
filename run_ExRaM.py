@@ -1,13 +1,22 @@
-# == Radar Simulation Test ==
-
+#=====================================================
+# == Experimental Radar Model (ExRaM) - Run Model ==
+#
 # Author: Allen
 # Date: 08/09/2024
-
+#
 # ** Currently in Development
+#=====================================================
+
+# Import Required Packages
+import numpy as np
+import matplotlib.pyplot as plt
+from coordinateTransforms.functions import LLA2ECEF, ECEF2LLA
+
 
 # Radar Parameters - Positioning & Orientation
 radar = {}
 radar['geod_pos'] = [0,0,0]
+radar['ECEF_pos'] = LLA2ECEF(radar['geod_pos'],'SPHERICAL')
 radar['boresight'] = [45,90]
 
 # Radar Parameters - Waveform
