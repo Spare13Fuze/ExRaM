@@ -1,0 +1,68 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+if __name__ == '__main__':
+
+    # Pulse Parameters
+    barker_code = 7
+    pulse_width = 5
+    amplitude = 1
+    centre_frequency = 2
+    phase_offset = 0
+    sample_frequency =20*barker_code*centre_frequency
+    
+    # Barker codes
+    match barker_code:
+        case 2:
+            chip_sequence = [1,-1]
+        case 3:
+            chip_sequence = [1,1,-1]
+        case 4:
+            chip_sequence = [1,1,-1,1]
+        case 5:
+            chip_sequence = [1,1,1,-1,1]
+        case 7:
+            chip_sequence = [1,1,1,-1,-1,1,-1]
+        case 11:
+            chip_sequence = [1,1,1,-1,-1,-1,1,-1,-1,1,-1]
+        case 13:
+            chip_sequence = [1,1,1,1,1,-1,-1,1,1,-1,1,-1,1]
+    
+    
+    # Time Array and zero array to store pulse
+    pulse_time = np.arange(0,pulse_width,1/sample_frequency)
+    waveform = np.zeros((len(pulse_time)))
+        
+    
+    # Calculating Instantaneous Phase and Generating the waveform
+    instantaneous_phase = (2*np.pi*centre_frequency*pulse_time)+phase_offset
+    
+    for i in range(0,(len(pulse_time)-barker_code),barker_code):
+        for j in range(0,barker_code):
+            waveform[i+j] = chip_sequence[j]*amplitude * np.exp(1j*instantaneous_phase[i+j])
+            
+            
+    
+    # Fast Fourier Transforming the waveform to determine the Spectral content
+    waveform_fft = np.fft.fft(waveform)
+    waveform_fft_shifted = np.fft.fftshift(waveform_fft)
+    frequency_axis = np.arange(-sample_frequency/2, sample_frequency/2, sample_frequency/len(waveform_fft_shifted))
+    
+    # Plotting the waveform
+    plt.figure(1)
+    plt.plot(pulse_time,waveform)
+    plt.xlabel('time (s)')
+    plt.ylabel('Amplitude')
+    plt.title(f'constant tone pulse at {centre_frequency}Hz, seeded with barker-{barker_code}')
+    
+    # Plotting the spectral content of the waveform
+    fig, (ax1, ax2) = plt.subplots(2)
+    fig.suptitle('spectral content of the contant tone waveform')
+    ax1.plot(frequency_axis, np.abs(waveform_fft_shifted))
+    ax1.set_xlabel('frequency (Hz)')
+    ax1.set_ylabel('FFT of signal (Magnitude)')
+    ax2.plot(frequency_axis, np.angle(waveform_fft_shifted))
+    ax2.set_xlabel('frequency (Hz)')
+    ax2.set_ylabel('FFT of signal (Phase)')
+ 
+    plt.show()
