@@ -22,5 +22,5 @@ The model is intended to provide a simulation environment to practice algorithms
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/radar-model.git
-   cd radar-model
+   git clone https://github.com/Spare13Fuze/ExRaM.git
+   cd ExRaM
