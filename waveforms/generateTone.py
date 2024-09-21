@@ -17,17 +17,34 @@ if __name__ == '__main__':
     instantaneous_phase = (2*np.pi*tone_frequency*pulse_time)+phase_offset
     waveform = amplitude * np.exp(1j*instantaneous_phase)
     
-    # Fast Fourier Transforming the waveform to determine the Spectral content
-    waveform_fft = np.fft.fft(waveform)
-    waveform_fft_shifted = np.fft.fftshift(waveform_fft)
-    frequency_axis = np.arange(-sample_frequency/2, sample_frequency/2, sample_frequency/len(waveform_fft_shifted))
-    
     # Plotting the waveform
     plt.figure(1)
     plt.plot(pulse_time,waveform)
     plt.xlabel('time (s)')
     plt.ylabel('Amplitude')
     plt.title(f'constant tone pulse - Frequency: {tone_frequency}Hz, Phase Offset: {phase_offset} rads')
+    
+    # Modelling a burst of pulses with varying PRIs
+    PRIs = [20,23,18,17,21]
+    
+    burst = {}
+    for iPulse in range(0,len(PRIs)):
+        burst[f'{iPulse}'] = {}
+        burst[f'{iPulse}']['time'] = np.arange(0,PRIs[iPulse],1/sample_frequency)
+        burst[f'{iPulse}']['signal'] = np.zeros(((sample_frequency*PRIs[iPulse]),1))
+        burst[f'{iPulse}']['signal'][0:len(waveform),0] = waveform
+    
+    # Plotting the burst of pulses
+    plt.figure(2)
+    plt.plot(burst['3']['time'],burst['3']['signal'])
+    plt.xlabel('time (s)')
+    plt.ylabel('Amplitude')
+    plt.title(f'A single PRI')
+    
+    # Fast Fourier Transforming the waveform to determine the Spectral content
+    waveform_fft = np.fft.fft(waveform)
+    waveform_fft_shifted = np.fft.fftshift(waveform_fft)
+    frequency_axis = np.arange(-sample_frequency/2, sample_frequency/2, sample_frequency/len(waveform_fft_shifted))
     
     # Plotting the spectral content of the waveform
     fig, (ax1, ax2) = plt.subplots(2)

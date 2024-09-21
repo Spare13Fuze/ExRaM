@@ -28,32 +28,45 @@ if __name__ == '__main__':
         case 13:
             chip_sequence = [1,1,1,1,1,-1,-1,1,1,-1,1,-1,1]
     
-    
     # Time Array and zero array to store pulse
     pulse_time = np.arange(0,pulse_width,1/sample_frequency)
     waveform = np.zeros((len(pulse_time)))
         
-    
     # Calculating Instantaneous Phase and Generating the waveform
     instantaneous_phase = (2*np.pi*centre_frequency*pulse_time)+phase_offset
     
     for i in range(0,(len(pulse_time)-barker_code),barker_code):
         for j in range(0,barker_code):
-            waveform[i+j] = chip_sequence[j]*amplitude * np.exp(1j*instantaneous_phase[i+j])
+            waveform[i+j] = chip_sequence[j]*amplitude*np.exp(1j*instantaneous_phase[i+j])
             
-            
-    
-    # Fast Fourier Transforming the waveform to determine the Spectral content
-    waveform_fft = np.fft.fft(waveform)
-    waveform_fft_shifted = np.fft.fftshift(waveform_fft)
-    frequency_axis = np.arange(-sample_frequency/2, sample_frequency/2, sample_frequency/len(waveform_fft_shifted))
-    
     # Plotting the waveform
     plt.figure(1)
     plt.plot(pulse_time,waveform)
     plt.xlabel('time (s)')
     plt.ylabel('Amplitude')
-    plt.title(f'constant tone pulse at {centre_frequency}Hz, seeded with barker-{barker_code}')
+    plt.title(f'constant tone pulse at {centre_frequency}Hz, seeded with barker-{barker_code}')  
+    
+    # Modelling a burst of pulses with varying PRIs
+    PRIs = [20,23,18,17,21]
+    
+    burst = {}
+    for iPulse in range(0,len(PRIs)):
+        burst[f'{iPulse}'] = {}
+        burst[f'{iPulse}']['time'] = np.arange(0,PRIs[iPulse],1/sample_frequency)
+        burst[f'{iPulse}']['signal'] = np.zeros(((sample_frequency*PRIs[iPulse]),1))
+        burst[f'{iPulse}']['signal'][0:len(waveform),0] = waveform
+    
+    # Plotting the burst of pulses
+    plt.figure(2)
+    plt.plot(burst['3']['time'],burst['3']['signal'])
+    plt.xlabel('time (s)')
+    plt.ylabel('Amplitude')
+    plt.title(f'A single PRI')
+    
+    # Fast Fourier Transforming the waveform to determine the Spectral content
+    waveform_fft = np.fft.fft(waveform)
+    waveform_fft_shifted = np.fft.fftshift(waveform_fft)
+    frequency_axis = np.arange(-sample_frequency/2, sample_frequency/2, sample_frequency/len(waveform_fft_shifted))
     
     # Plotting the spectral content of the waveform
     fig, (ax1, ax2) = plt.subplots(2)
