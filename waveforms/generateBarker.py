@@ -1,15 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import warnings
 
-if __name__ == '__main__':
-
-    # Pulse Parameters
-    barker_code = 7
-    pulse_width = 5
-    amplitude = 1
-    centre_frequency = 2
-    phase_offset = 0
-    sample_frequency =20*barker_code*centre_frequency
+def GenerateBarker(sample_frequency,pulse_width,amplitude,frequency,phase_offset,barker_code):
+    
+    # Undersampling warning
+    minimum_sample_frequency = 20*barker_code*frequency
+    if sample_frequency < minimum_sample_frequency:
+        warnings.warn(f'A minimum sample frequency of {minimum_sample_frequency}Hz is suggested to prevent under-sampling.',stacklevel=2)
     
     # Barker codes
     match barker_code:
@@ -31,37 +29,42 @@ if __name__ == '__main__':
     # Time Array and zero array to store pulse
     pulse_time = np.arange(0,pulse_width,1/sample_frequency)
     waveform = np.zeros((len(pulse_time)))
+    phase_modulation = np.zeros((len(pulse_time)))
         
     # Calculating Instantaneous Phase and Generating the waveform
-    instantaneous_phase = (2*np.pi*centre_frequency*pulse_time)+phase_offset
+    instantaneous_phase = (2*np.pi*frequency*pulse_time)+phase_offset
     
     for i in range(0,(len(pulse_time)-barker_code),barker_code):
         for j in range(0,barker_code):
+            phase_modulation [i+j] = chip_sequence[j]
             waveform[i+j] = chip_sequence[j]*amplitude*np.exp(1j*instantaneous_phase[i+j])
             
+    return pulse_time,waveform,phase_modulation
+
+if __name__ == '__main__':
+
+    # Pulse Parameters
+    barker_code = 7
+    pulse_width = 5
+    amplitude = 1
+    centre_frequency = 2
+    phase_offset = 0
+    sample_frequency = 281
+    
+    pulse_time,waveform,phase_modulation = GenerateBarker(sample_frequency,pulse_width,amplitude,centre_frequency,phase_offset,barker_code)
+    
     # Plotting the waveform
     plt.figure(1)
     plt.plot(pulse_time,waveform)
-    plt.xlabel('time (s)')
+    plt.xlabel('Time (s)')
     plt.ylabel('Amplitude')
-    plt.title(f'constant tone pulse at {centre_frequency}Hz, seeded with barker-{barker_code}')  
+    plt.title(f'Constant Tone Pulse at {centre_frequency}Hz, seeded with barker-{barker_code}')
     
-    # Modelling a burst of pulses with varying PRIs
-    PRIs = [20,23,18,17,21]
-    
-    burst = {}
-    for iPulse in range(0,len(PRIs)):
-        burst[f'{iPulse}'] = {}
-        burst[f'{iPulse}']['time'] = np.arange(0,PRIs[iPulse],1/sample_frequency)
-        burst[f'{iPulse}']['signal'] = np.zeros(((sample_frequency*PRIs[iPulse]),1))
-        burst[f'{iPulse}']['signal'][0:len(waveform),0] = waveform
-    
-    # Plotting the burst of pulses
-    plt.figure(2)
-    plt.plot(burst['3']['time'],burst['3']['signal'])
-    plt.xlabel('time (s)')
-    plt.ylabel('Amplitude')
-    plt.title(f'A single PRI')
+    plt.figure()
+    plt.plot(pulse_time,phase_modulation)
+    plt.xlabel('Time (s)')
+    plt.ylabel('Binary Phase Chip (1/-1)')
+    plt.title(f'Waveform Phase Chip Sequence')
     
     # Fast Fourier Transforming the waveform to determine the Spectral content
     waveform_fft = np.fft.fft(waveform)
@@ -70,12 +73,12 @@ if __name__ == '__main__':
     
     # Plotting the spectral content of the waveform
     fig, (ax1, ax2) = plt.subplots(2)
-    fig.suptitle('spectral content of the contant tone waveform')
+    fig.suptitle('Spectral Content of the Waveform')
     ax1.plot(frequency_axis, np.abs(waveform_fft_shifted))
-    ax1.set_xlabel('frequency (Hz)')
+    ax1.set_xlabel('Frequency (Hz)')
     ax1.set_ylabel('FFT of signal (Magnitude)')
     ax2.plot(frequency_axis, np.angle(waveform_fft_shifted))
-    ax2.set_xlabel('frequency (Hz)')
+    ax2.set_xlabel('Frequency (Hz)')
     ax2.set_ylabel('FFT of signal (Phase)')
  
     plt.show()
